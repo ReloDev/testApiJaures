@@ -387,14 +387,18 @@ public function logout()
     public function userAuth(Request $request){
         try{
 
-            $user = User::whereId(Auth::user()->id)->first();
+            $user = User::whereId(Auth::user()->id)->get();
 
-            $data[] =[
-                'data' =>Auth::user(),
-                'file'=>$user->file
-            ];
+            // return $user[0]->file[0]->location;
 
-            return response()->json($data);
+                if($user[0]->file[0]){
+                    $user[0]->location = $user[0]->file[0]->location;
+                }
+         
+
+            $data = ["user"=>$user] ;
+
+             return response()->json($data);
 
         } catch (Exception $e) {
             return response()->json($e->getMessage());
