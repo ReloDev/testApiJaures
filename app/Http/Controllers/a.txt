@@ -1,0 +1,163 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Laravel\Sanctum\PersonalAccessToken;
+use Laravel\Passport\HasApiTokens;
+
+class UserController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        try
+        {
+            $users = User::all();
+            return response()->json(['data' => $users]);
+        }
+        catch (Exception $e)
+        {
+            return response()->json(['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function login(Request $request)
+    {
+        try
+        {
+            // $pattern = "/\\b(SELECT|FROM|DROP|TABLE|INSERT|INTO|<script>|\\/\\*|\\*\\/|\\bunion\\b|\\bor\\b|\\band\\b|\\bupdate\\b|\\balter\\b|\\bcreate\\b|\\bdelete\\b|\\bdrop\\b|\\bexec\\b|\\bexecute\\b|\\balter\\b|\\bbegin\\b|\\bdeclare\\b|\\bcast\\b|\\bmaster\\b|\\btruncate\\b|\\bgrant\\b|\\brevoke\\b|\\bopendatasource\\b|\\bopendatasourcen\\b|\\bxp_cmdshell\\b|\\bsp_password\\b|\\bsp_add_login_mapper\\b|\\bsp_uninstall_addin\\b|\\bsp_start_job\\b|\\bsp_stop_job\\b|\\bsp_add_category\\b|\\bsp_update_category\\b|\\bsp_delete_category\\b|\\bsp_help_category\\b|\\bsp_add_jobserver\\b|\\bsp_update_jobserver\\b|\\bsp_delete_jobserver\\b|\\bsp_help_jobserver\\b|\\bsp_add_job\\b|\\bsp_update_job\\b|\\bsp_delete_job\\b|\\bsp_help_job\\b|\\bsp_add_proxyaccount\\b|\\bsp_update_proxyaccount\\b|\\bsp_delete_proxyaccount\\b|\\bsp_help_proxyaccount\\b|\\bsp_start_job\\b|\\bsp_stop_job\\b|\\bsp_add_category\\b|\\bsp_update_category\\b|\\bsp_delete_category\\b|\\bsp_help_category\\b|\\bsp_add_jobserver\\b|\\bsp_update_jobserver\\b|\\bsp_delete_jobserver\\b|\\bsp_help_jobserver\\b|\\bsp_add_job\\b|\\bsp_update_job\\b|\\bsp_delete_job\\b|\\bsp_help_job\\b|\\bsp_add_proxyaccount\\b|\\bsp_update_proxyaccount\\b|\\bsp_delete_proxyaccount\\b|\\bsp_help_proxyaccount\\b|\\bsp_add_schedule\\b|\\bsp_update_schedule\\b|\\bsp_delete_schedule\\b|\\bsp_help_schedule\\b|\\bsp_add_operator\\b|\\bsp_update_operator\\b|\\bsp_delete_operator\\b|\\bsp_help_operator\\b|\\bsp_add_notification\\b|\\bsp_update_notification\\b|\\bsp_delete_notification\\b|\\bsp_help_notification\\b|\\bsp_add_targetservergroup\\b|\\bsp_update_targetservergroup\\b|\\bsp_delete_targetservergroup\\b|\\bsp_help_targetservergroup\\b|\\bsp_add_targetserver\\b|\\bsp_update_targetserver\\b|\\bsp_delete_targetserver\\b|\\bsp_help_targetserver\\b|\\bsp_add_jobstep\\b|\\bsp_update_jobstep\\b|\\bsp_delete_jobstep\\b|\\bsp_help_jobstep\\b|\\bsp_add_jobserver\\b|\\bsp_update_jobserver\\b|\\bsp_delete_jobserver\\b|\\bsp_help_jobserver\\b|\\bsp_add_operator\\b|\\bsp_update_operator\\b|\\bsp_delete_operator\\b|\\bsp_help_operator\\b|\\bsp_add_proxyaccount\\b|\\bsp_update_proxyaccount\\b|\\bsp_delete_proxyaccount\\b|\\bsp_";
+                $request->validate([
+                  'email' =>[
+                     "required|email",
+                    //  "not_regex:$pattern"
+                    ],
+                  "password" => [
+                    'required',
+                    // "not_regex:$pattern"
+                   ],
+                ]);
+          
+                $user = User::where('email', $request->email)->first();
+                if($user !=null){
+                  if (Hash::check($request->password, $user->password)) {
+                      $token = $user->createToken('auth_token')->plainTextToken;
+
+                      return response()->json([
+                          'user' => $user,
+                          'access_token' => $token,
+                          'token_type' => 'Bearer',
+                      ]);
+                  } else {
+                      return response()->json(['error' => 'Mot de passe invalide.'], 401);
+                }
+          
+          
+              }else {
+                  return response()->json(['error' => 'Adresse email invalide.'], 401);
+              }
+          
+
+        }
+        catch (Exception $e)
+        {
+            return response()->json(['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function register(Request $request)
+    {
+        try
+        {
+            //   $pattern = "/\\b(SELECT|FROM|DROP|TABLE|INSERT|INTO|<script>|\\/\\*|\\*\\/|\\bunion\\b|\\bor\\b|\\band\\b|\\bupdate\\b|\\balter\\b|\\bcreate\\b|\\bdelete\\b|\\bdrop\\b|\\bexec\\b|\\bexecute\\b|\\balter\\b|\\bbegin\\b|\\bdeclare\\b|\\bcast\\b|\\bmaster\\b|\\btruncate\\b|\\bgrant\\b|\\brevoke\\b|\\bopendatasource\\b|\\bopendatasourcen\\b|\\bxp_cmdshell\\b|\\bsp_password\\b|\\bsp_add_login_mapper\\b|\\bsp_uninstall_addin\\b|\\bsp_start_job\\b|\\bsp_stop_job\\b|\\bsp_add_category\\b|\\bsp_update_category\\b|\\bsp_delete_category\\b|\\bsp_help_category\\b|\\bsp_add_jobserver\\b|\\bsp_update_jobserver\\b|\\bsp_delete_jobserver\\b|\\bsp_help_jobserver\\b|\\bsp_add_job\\b|\\bsp_update_job\\b|\\bsp_delete_job\\b|\\bsp_help_job\\b|\\bsp_add_proxyaccount\\b|\\bsp_update_proxyaccount\\b|\\bsp_delete_proxyaccount\\b|\\bsp_help_proxyaccount\\b|\\bsp_start_job\\b|\\bsp_stop_job\\b|\\bsp_add_category\\b|\\bsp_update_category\\b|\\bsp_delete_category\\b|\\bsp_help_category\\b|\\bsp_add_jobserver\\b|\\bsp_update_jobserver\\b|\\bsp_delete_jobserver\\b|\\bsp_help_jobserver\\b|\\bsp_add_job\\b|\\bsp_update_job\\b|\\bsp_delete_job\\b|\\bsp_help_job\\b|\\bsp_add_proxyaccount\\b|\\bsp_update_proxyaccount\\b|\\bsp_delete_proxyaccount\\b|\\bsp_help_proxyaccount\\b|\\bsp_add_schedule\\b|\\bsp_update_schedule\\b|\\bsp_delete_schedule\\b|\\bsp_help_schedule\\b|\\bsp_add_operator\\b|\\bsp_update_operator\\b|\\bsp_delete_operator\\b|\\bsp_help_operator\\b|\\bsp_add_notification\\b|\\bsp_update_notification\\b|\\bsp_delete_notification\\b|\\bsp_help_notification\\b|\\bsp_add_targetservergroup\\b|\\bsp_update_targetservergroup\\b|\\bsp_delete_targetservergroup\\b|\\bsp_help_targetservergroup\\b|\\bsp_add_targetserver\\b|\\bsp_update_targetserver\\b|\\bsp_delete_targetserver\\b|\\bsp_help_targetserver\\b|\\bsp_add_jobstep\\b|\\bsp_update_jobstep\\b|\\bsp_delete_jobstep\\b|\\bsp_help_jobstep\\b|\\bsp_add_jobserver\\b|\\bsp_update_jobserver\\b|\\bsp_delete_jobserver\\b|\\bsp_help_jobserver\\b|\\bsp_add_operator\\b|\\bsp_update_operator\\b|\\bsp_delete_operator\\b|\\bsp_help_operator\\b|\\bsp_add_proxyaccount\\b|\\bsp_update_proxyaccount\\b|\\bsp_delete_proxyaccount\\b|\\bsp_";
+            
+            $request->validate([
+                "name" => [
+                    "required",
+                    "string",
+                    // "not_regex:$pattern"
+                ],
+                
+                "emai" => [
+                    "required|email|unique:users",
+                    // "not_regex:$pattern"
+                ],
+                
+                "password" => [
+                    "required",
+                    "string",
+                    "min:8",
+                    "confirmed",
+                    "regex:/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/",
+                    // "not_regex:$pattern"
+                ],
+
+                "password_confirmation" => [
+                    "required|string",
+                    // "not_regex:$pattern"
+                ],
+
+            ]);
+
+               // // Insertion des données utilisateur dans la base de données
+        // $name = $request->name;
+        // $email = $request->email;
+        // $password = bcrypt($request->password);
+
+        // $query = "INSERT INTO users (name, email, password) VALUES (:name, :email, :password)";
+        // DB::insert($query, ['name' => $name, 'email' => $email, 'password' => $password]);
+            
+                // Connexion à la base de données
+                $db = DB::connection()->getPdo();
+            
+                // Requête SQL pour insérer un nouvel utilisateur
+                $query = "INSERT INTO users (name, email, password) VALUES (:name, :email, :password)";
+            
+                // Préparation de la requête
+                $statement = $db->prepare($query);
+            
+                // Liaison des valeurs aux paramètres de la requête
+                $statement->bindParam(':name', $name);
+                $statement->bindParam(':email', $email);
+                // $statement->bindParam(':password', password_hash($password, PASSWORD_DEFAULT)); // Utilisation de password_hash pour hasher le mot de passe
+            
+                // Exécution de la requête
+                $statement->execute();
+            
+            return response()->json('User created successfully');
+        }
+        catch (Exception $e)
+        {
+            return response()->json(['error' => $e->getMessage()]);
+        }
+    }
+
+    public function logout(Request $request){
+        try{
+            $accessToken = $request->bearerToken();
+            $token = PersonalAccessToken::findToken($accessToken);
+            $token->delete();
+    
+            return response()->json([
+                'status' => true,
+                'message' => 'You are disconnected'
+            ]);
+    
+        } catch (Exception $e) {
+            return response()->json($e->getMessage());
+        }
+    }
+  
+}
